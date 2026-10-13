@@ -1,0 +1,14 @@
+import { notebook as practical0 } from "./data-import";
+import { notebook as practical1 } from "./data-prepare";
+import { notebook as practical2 } from "./data-visualize";
+import { notebook as practical3 } from "./data-compare";
+import { notebook as practical4 } from "./data-regression";
+import { notebook as practical5 } from "./data-report";
+import { essentials } from './essentials';
+import { probability } from './probability';
+import { distributions } from './distributions';
+import { sampling } from './sampling';
+import { hypothesis } from './hypothesis';
+import { confidence } from './confidence';
+import { validateCourse } from './schema';
+export const notebooks = validateCourse([essentials, probability, distributions, sampling, confidence, hypothesis, practical0, practical1, practical2, practical3, practical4, practical5]);
