@@ -112,3 +112,30 @@ test('practical track, downloadable data and regression figures work from the de
   expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
   await page.screenshot({path:'docs/screenshots/practical-mobile.png'});
 });
+
+test('ggplot lesson runs from static hosting and its PNG export contains the actual chart', async ({page}) => {
+  await page.goto('./#data-ggplot');
+  const run = page.getByRole('button', {name:'Run all',exact:false}).first();
+  await expect(run).toBeEnabled({timeout:90000});
+  await run.click();
+  await expect(run).toBeEnabled({timeout:120000});
+  await expect(page.locator('.error-output')).toHaveCount(0);
+  await expect(page.locator('.output')).toHaveCount(9);
+  await expect(page.locator('.notice')).toContainText('9 unfinished');
+  const final = page.locator('[data-chunk-id="gg-final"]');
+  await expect(final.locator('.output img')).toBeVisible();
+  await final.locator('figure').scrollIntoViewIfNeeded();
+  await page.screenshot({path:'docs/screenshots/ggplot-desktop.png'});
+  const downloadEvent = page.waitForEvent('download');
+  await final.getByRole('link', {name:'Download plot PNG'}).click();
+  const download = await downloadEvent;
+  expect(download.suggestedFilename()).toBe('data-ggplot-gg-final-1.png');
+  const {readFile} = await import('node:fs/promises');
+  const file = await readFile((await download.path())!);
+  expect(file.subarray(0,8).toString('hex')).toBe('89504e470d0a1a0a');
+  expect(file.length).toBeGreaterThan(1000);
+  await page.setViewportSize({width:390,height:844});
+  await final.locator('figure').scrollIntoViewIfNeeded();
+  expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
+  await page.screenshot({path:'docs/screenshots/ggplot-mobile.png'});
+});

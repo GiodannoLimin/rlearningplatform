@@ -1,3 +1,4 @@
+import { notebook as ggplot } from "./data-ggplot";
 import { notebook as practical0 } from "./data-import";
 import { notebook as practical1 } from "./data-prepare";
 import { notebook as practical2 } from "./data-visualize";
@@ -11,4 +12,4 @@ import { sampling } from './sampling';
 import { hypothesis } from './hypothesis';
 import { confidence } from './confidence';
 import { validateCourse } from './schema';
-export const notebooks = validateCourse([essentials, probability, distributions, sampling, confidence, hypothesis, practical0, practical1, practical2, practical3, practical4, practical5]);
+export const notebooks = validateCourse([essentials, probability, distributions, sampling, confidence, hypothesis, practical0, practical1, practical2, practical3, practical4, practical5, ggplot]);

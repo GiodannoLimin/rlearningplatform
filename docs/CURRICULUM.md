@@ -56,17 +56,16 @@ These topics can extend a mathematical-statistics curriculum. Their presence on 
 | P1 Import and inspect a CSV | R essentials | read.csv, types, row/column selection, missingness and quality audit |
 | P2 Prepare and summarize data | P1 | documented exclusions, derived variables, grouped summaries, denominators |
 | P3 Explore data with plots | P2 | histograms, boxplots, scatterplots, numerical alternatives, correlation |
-| P4 Compare groups with uncertainty | P2 and core CI/tests | contrast direction, Welch interval, p-value, practical threshold, composition |
-| P5 Fit and check linear regression | P3–P4 | simple/additive models, reference groups, residuals, prediction intervals, holdout error |
-| P6 From question to a reproducible report | P1–P5 | planned analysis, audit trail, adjusted estimate, diagnostics, bounded conclusion |
+| P4 Build visualizations with ggplot2 | P1–P3 | mappings/layers, group encodings, histograms, boxplots, counts versus means, facets, labels and PNG export |
+| P5 Compare groups with uncertainty | P2 and core CI/tests | contrast direction, Welch interval, p-value, practical threshold, composition |
+| P6 Fit and check linear regression | P3–P5 | simple/additive models, reference groups, residuals, prediction intervals, holdout error |
+| P7 From question to a reproducible report | P1–P6 | planned analysis, audit trail, adjusted estimate, diagnostics, bounded conclusion |
 
 The first three can follow R essentials directly. Group inference follows the
 core confidence-interval and testing lessons. Advanced mathematical statistics
-is a parallel future path, not a gate to practical analysis. P1–P4 have estimated
-45–65 minute durations; P5–P6 estimate 60–80 minutes. The six practical notebooks
-contain 25 worked examples and 25 editable exercises with optional answers.
+is a parallel future path, not a gate to practical analysis. P1–P3 and P5 estimate 45–65 minutes; P4 estimates 60–90; P6–P7 estimate 60–80. The seven practical notebooks contain 34 worked examples and 34 editable exercises with optional answers.
 
-All six use the same bundled original synthetic orders CSV, independently
+All seven use the same bundled original synthetic orders CSV, independently
 imported in each notebook. Its documentation identifies units, generation,
 intentional defects, missing values, and license. Practical regression is
 implemented; advanced regression theory and ANOVA remain upcoming.

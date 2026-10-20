@@ -1,3 +1,4 @@
+import './verify-packages.mjs';
 import { cp, mkdir, readFile, writeFile } from 'node:fs/promises';
 import { createRequire } from 'node:module';
 import { dirname, resolve } from 'node:path';

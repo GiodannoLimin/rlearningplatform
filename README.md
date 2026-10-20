@@ -1,6 +1,6 @@
 # Statistics with R
 
-A complete browser notebook course in probability and statistics. Six core and six practical notebooks combine short explanations, editable R, real output, and optional exercises. No login, paid API, server-side R, analytics, tracking, or AI endpoint.
+A complete browser notebook course in probability and statistics. Six core and seven practical notebooks combine short explanations, editable R, real output, and optional exercises. No login, paid API, server-side R, analytics, tracking, or AI endpoint.
 
 ## Open locally
 
@@ -61,7 +61,7 @@ pnpm build
 pnpm preview --port 4173
 ```
 
-The dev/build scripts copy the pinned `webr@0.6.0` runtime into `public/webr/v0.6.0/` from the installed package, then include it in `dist/`. No CDN is needed at lesson runtime; all course requests go to the same host. The generated runtime folder is ignored in source control and recreated automatically. The complete static build is about 47 MiB on disk; R lazily loads the files it needs. A network connection is required to initially fetch the site from its host, but calculations and learner edits stay in the browser.
+The dev/build scripts copy the pinned `webr@0.6.0` runtime into `public/webr/v0.6.0/` from the installed package, then include it in `dist/`. No CDN is needed at lesson runtime; all course requests go to the same host. The generated runtime folder is ignored in source control and recreated automatically. The complete static build is about 64 MiB on disk; R lazily loads the files it needs. A network connection is required to initially fetch the site from its host, but calculations and learner edits stay in the browser.
 
 Deploy the **contents of `dist/`** to an ordinary static host. Serve via HTTP for localhost or HTTPS on the web, not `file://`. Preserve subdirectories and filenames. Vite uses relative asset paths; navigation uses URL hashes, so no server-side route rewrites are required. Both a domain root and a directory such as `/statistics/` are supported. The automated production suite tests `/course/`.
 
@@ -100,9 +100,9 @@ not the source project or local `127.0.0.1` address.
 
 ## Practical track: Working with data in R
 
-The home page separates six core statistics notebooks from six implemented
-practical notebooks, P1–P6. Open `/#data-import` to start. The track covers CSV
-import, cleaning and summaries, plots, group comparisons, regression, and a
+The home page separates six core statistics notebooks from seven implemented
+practical notebooks, P1–P7. Open `/#data-import` to start. The track covers CSV
+import, cleaning and summaries, base-R plots, ggplot2 visualization, group comparisons, regression, and a
 reproducible analysis report. Advanced regression theory/ANOVA remain upcoming.
 
 The bundled `public/data/orders.csv` is original synthetic CC0 teaching data.
@@ -118,3 +118,37 @@ environments, and disappear on Restart/Stop or reload. They are not in IndexedDB
 or backup JSON; keep the original CSV and reopen it. Uploaded columns are not
 automatically mapped to course examples: inspect and adapt the code yourself.
 The sample notebooks remain reproducible from the bundled file.
+
+
+## ggplot2 visualization
+
+Open `/#data-ggplot` (P4) after the base-R plotting notebook. It contains nine
+worked examples and nine exercises on mappings/layers, grouped scatterplots,
+histograms, boxplots, counts versus summary bars, facets, labels, and themes.
+Every worked chart has a numerical alternative; the Download plot PNG link
+exports its actual R-generated image.
+
+WebR ggplot2 **4.0.3** and its dependencies are pinned in `r-packages.lock.json`.
+Original archives are retained in `vendor/r-packages`; their verified browser
+filesystem images are in `public/r-packages` with a separate image lockfile.
+Normal dev/build verifies all hashes without network access. Only a notebook
+with `packages: ['ggplot2']` loads the images, on its first Run in an R session.
+The additional compressed download is about 16 MiB. Package loading has a
+visible status and a two-minute timeout; Stop also cancels loading. Restart
+clears loaded packages and the next plotting run reloads them (browser HTTP
+caching may avoid another transfer). The existing 30-second limit applies to
+subsequent R code execution. Package initialization time is included in the
+first chunk's elapsed time, separately from the displayed R startup time.
+
+The complete static bundle is now about 64 MiB. Host the full r-packages folder.
+The compressed image files intentionally end in `.data.bin` to prevent hosts
+from treating `.gz` as HTTP content encoding; the browser verifies their hashes,
+decompresses them, and mounts one read-only plotting library. Package source and
+license notices are linked from the footer and included in the archives/images.
+
+To regenerate the browser images after an intentional package-lock update,
+run `python3 scripts/prepare-package-images.py` (Python standard library only),
+then run the full verification suite. Ordinary use/build does not require Python.
+For native R verification or exported ggplot scripts, install ggplot2 4.0.3 in
+native R separately; WebR binaries cannot be used by desktop R. An existing
+matching installation was used for this project's native verification.

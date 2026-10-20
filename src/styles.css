@@ -697,3 +697,4 @@ footer .author-credit span { display: block; }
 .practical-track { margin-top: 64px; }
 .dataset-note { margin: 24px 0; padding: 16px 0; border-block: 1px solid var(--line); }
 .dataset-note p { font-size: 14px; line-height: 1.7; }
+.plot-download { display: inline-block; margin-top: .5rem; font-size: 13px; }

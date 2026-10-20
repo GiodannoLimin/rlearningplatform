@@ -78,9 +78,9 @@ Representative screenshots are in `docs/screenshots/`, including `home-desktop.p
 3. **R isolation:** ordinary notebook objects are separate, but random-number state, options, package state, filesystem and explicit global assignments share the one R process. This is not a security boundary between notebooks. Restart and Stop clear all notebooks’ R objects.
 4. **Persistence:** code edits are saved, not R objects, output, selection history, or plot images. Browser storage can fail or be cleared, and separate origins/tabs do not synchronize work. Use exported backups. Limits are 100,000 characters per cell and 5 MB per backup.
 5. **Staleness:** warnings conservatively follow document order and edits; they are not dependency analysis. Arbitrary user changes can alter the intended statistical experiment. Plot descriptions refer to starter code; edited plot output is labeled accordingly.
-6. **Resources:** the runtime is self-hosted but not installed as an offline application. Large user-written simulations or output can exhaust browser memory despite the watchdog. There is no package manager UI or guarantee for additional packages; lessons need only base/standard R.
+6. **Resources:** the runtime is self-hosted but not installed as an offline application. Large user-written simulations or output can exhaust browser memory despite the watchdog. There is no package manager UI or guarantee for arbitrary additional packages. Core lessons use base/standard R; the ggplot2 practical lesson loads a pinned, bundled package collection.
 7. **Output ordering:** console text/tables are grouped before the plots within their own chunk; interleaving text and graphics expression-by-expression is not reproduced. Tables retain R’s readable monospaced printing rather than a separate data-grid interface.
-8. **Educational scope:** the six initial notebooks are implemented. Advanced topics remain clearly labeled upcoming. Independent human statistics-educator review and measured learning outcomes have not been obtained.
+8. **Educational scope:** the six core and seven practical notebooks are implemented. Advanced theory topics remain clearly labeled upcoming. Independent human statistics-educator review and measured learning outcomes have not been obtained.
 
 No required initial notebook or requested core application feature is left as a mockup. No public deployment was performed; the project is runnable locally and its `dist/` is ready for static hosting.
 
@@ -146,3 +146,55 @@ Public hosting was not performed. The existing advanced theory roadmap remains
 upcoming; practical regression does not imply that ANOVA/theoretical regression
 lessons are complete. Local CSV files are session-only and require reopening
 following refresh, Restart, or Stop; saved-work backups preserve code, not data.
+
+## ggplot2 visualization update — 2026-10-20
+
+Added P4, “Build visualizations with ggplot2,” between base-R plotting and
+group comparisons. Its nine examples and nine exercises cover plot layers,
+mapped and fixed aesthetics, histograms, boxplots, counts versus summaries,
+facets, and labeled presentation. Every chart has a numerical companion.
+All notebook plots now offer PNG downloads. Existing notebook and chunk IDs
+are unchanged; the practical track is now P1–P7. There are 13 notebooks,
+88 worked examples, and 75 exercises (163 chunks).
+
+ggplot2 4.0.3 and 16 dependencies are pinned, bundled, and loaded on demand.
+Original archive and generated filesystem-image hashes are checked during
+build preparation; image hashes are checked again in the browser. WebR mounts
+the verified images with WORKERFS. This avoids the archive-installation path
+that failed during development. Loading can be stopped, and failed downloads
+can be retried. No external package service is required by visitors.
+
+Verification performed:
+
+- Ten unit tests passed.
+- Native R: all 13 notebooks passed in worked-example, supplied-answer, and
+  unfinished-starter modes, each in a clean process (39 runs). Native R used
+  ggplot2 4.0.3.
+- Real WebR: all 13 notebooks passed those same three modes in separate clean
+  environments, including statistical assertions and expected graphics.
+- All 20 development browser cases passed across the full run and one targeted
+  rerun. The initial combined run passed 19 cases; concurrent production tests
+  deleted a shared trace-output folder during the last case. Separate report
+  folders fixed that test-infrastructure conflict, and the affected full-course
+  WebR test passed on rerun.
+- Package-specific checks verified lazy loading, reuse within a session,
+  actual ggplot rendering, corrupted-download rejection and retry, and Stop
+  during loading followed by successful recovery.
+- All six production browser cases passed, including every notebook's Run all,
+  same-origin resources at a subdirectory URL, a real downloaded PNG signature,
+  and desktop/narrow layouts. Existing checks cover math, zoom/reduced motion,
+  local CSV use, persistence, backups, shortcuts, reset/restart, and the runaway
+  code watchdog.
+- The ggplot desktop and 390px screenshots were visually inspected by the AI
+  assistant. Charts scale down on phones; the PNG download allows viewing at
+  full resolution. This is not independent human educator, Safari, or
+  assistive-technology validation.
+
+The build succeeds with Vite's existing large-JavaScript-bundle advisory.
+The static output contains 218 files, totaling 67,286,745 bytes (about 64 MiB);
+the largest asset is 18,062,845 bytes. The bundled plotting packages add about
+16 MiB, fetched only when needed. These are file sizes, not network-speed or
+learning-outcome measurements. Package fetching needs a modern browser with
+Web Crypto and gzip DecompressionStream support. The hosting ZIP is rebuilt
+from this output; public deployment and independent educator review remain
+unperformed.

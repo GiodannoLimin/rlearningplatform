@@ -27,3 +27,38 @@ test('ggplot2 loads only on demand from pinned same-origin packages and renders 
   expect(external).toEqual([]);
   await page.evaluate(() => window.testRuntime.shutdown());
 });
+
+test('a damaged package has a readable error and retry succeeds without a restart', async ({page}) => {
+  await page.goto('/#data-ggplot');
+  const run = page.getByRole('button', {name:'Run all',exact:false}).first();
+  await expect(run).toBeEnabled({timeout:90000});
+  await page.route('**/r-packages/ggplot2-*.data.bin', route => route.fulfill({body:'damaged',contentType:'application/octet-stream'}));
+  await run.click();
+  await expect(page.locator('.error-output')).toContainText('integrity check');
+  await expect(page.locator('.output')).toHaveCount(1);
+  await page.unroute('**/r-packages/ggplot2-*.data.bin');
+  await run.click();
+  await expect(run).toBeEnabled({timeout:120000});
+  await expect(page.locator('.error-output')).toHaveCount(0);
+  await expect(page.locator('.output img')).toHaveCount(8);
+});
+
+test('Stop cancels an in-flight plotting download and restart can load a clean library', async ({page}) => {
+  await page.goto('/#data-ggplot');
+  const run = page.getByRole('button', {name:'Run all',exact:false}).first();
+  await expect(run).toBeEnabled({timeout:90000});
+  let release!: () => void;
+  const gate = new Promise<void>(resolve => { release = resolve; });
+  await page.route('**/r-packages/ggplot2-*.data.bin', async route => { await gate; await route.abort().catch(() => {}); });
+  const request = page.waitForRequest('**/r-packages/ggplot2-*.data.bin');
+  await run.click(); await request;
+  await expect(page.locator('.runtime-line')).toContainText('Loading ggplot2');
+  await page.getByRole('button', {name:'Stop',exact:true}).click();
+  release();
+  await page.unroute('**/r-packages/ggplot2-*.data.bin');
+  await expect(run).toBeEnabled({timeout:90000});
+  await run.click();
+  await expect(run).toBeEnabled({timeout:120000});
+  await expect(page.locator('.error-output')).toHaveCount(0);
+  await expect(page.locator('.output img')).toHaveCount(8);
+});

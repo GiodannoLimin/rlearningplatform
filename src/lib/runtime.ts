@@ -1,3 +1,4 @@
+import packageImages from '../../r-package-images.lock.json';
 import { ChannelType, WebR, isRObject, type RObject, type Shelter } from 'webr';
 
 export const WEBR_VERSION = '0.6.0';
@@ -29,6 +30,7 @@ export class RuntimeCancelledError extends Error {
 }
 
 class RuntimeTimeoutError extends Error {}
+class RuntimePackageError extends Error {}
 
 function errorMessage(error: unknown): string {
   const message = error instanceof Error ? error.message : String(error);
@@ -201,12 +203,8 @@ export class RRuntime {
     try {
       for (const name of packages) if (!this.loadedPackages.has(name)) {
         this.publish({ message: 'Loading ggplot2 and its bundled dependencies for this R session… Stop cancels loading.' });
-        await this.cancellable(worker.installPackages(name, {
-          repos: new URL('./r-packages/', document.baseURI).href, mount: false, quiet: true,
-        }), generation, 120_000, 'Package loading exceeded two minutes. R was restarted. Check your connection and run again.');
-        const version = await worker.evalRString('as.character(packageVersion("ggplot2"))');
-        this.assertCurrent(generation);
-        if (version !== '4.0.3') throw new Error('The bundled ggplot2 4.0.3 did not load. Retry this chunk or restart R.');
+        await this.cancellable(this.loadPlotPackages(worker, generation), generation, 120_000,
+          'Package loading exceeded two minutes. R was restarted. Check your connection and run again.');
         this.loadedPackages.add(name);
         this.publish({ message: `Running chunk [${execution}]…` });
       }
@@ -227,7 +225,7 @@ export class RRuntime {
       }
       this.queueEpoch++;
       const message = errorMessage(error);
-      if (error instanceof RuntimeTimeoutError) {
+      if (error instanceof RuntimeTimeoutError || error instanceof RuntimePackageError) {
         // Recovery is independent of the abandoned capture promise.
         this.invalidate(message);
         void this.start().catch(() => { /* Loading failure is exposed in the snapshot. */ });
@@ -239,6 +237,56 @@ export class RRuntime {
         elapsedMs: performance.now() - started,
       };
     }
+  }
+
+  private async loadPlotPackages(worker: WebR, generation: number): Promise<void> {
+    const controller = new AbortController();
+    const cancel = () => controller.abort();
+    this.cancelPending.add(cancel);
+    let mounting = false;
+    try {
+      // Mount verified filesystem images; avoid R's archive extraction path.
+      const images = [];
+      const checked = async (file: string, expectedHash: string) => {
+        const response = await fetch(new URL(`./r-packages/${file}`, document.baseURI), { signal: controller.signal });
+        if (!response.ok) throw new Error(`Could not load plotting file ${file} (HTTP ${response.status}). Run again to retry.`);
+        const bytes = await response.arrayBuffer();
+        const digest = await crypto.subtle.digest('SHA-256', bytes);
+        const hash = Array.from(new Uint8Array(digest), b => b.toString(16).padStart(2, '0')).join('');
+        if (hash !== expectedHash) throw new Error(`Plotting file ${file} failed its integrity check. Reload and retry.`);
+        this.assertCurrent(generation);
+        return bytes;
+      };
+      for (const pkg of packageImages.images) {
+        const data = await checked(pkg.data, pkg.sha256);
+        const metadata = JSON.parse(new TextDecoder().decode(await checked(pkg.metadata, pkg.metadataSha256)));
+        const blob = await new Response(new Blob([data]).stream().pipeThrough(new DecompressionStream('gzip'))).blob();
+        this.assertCurrent(generation);
+        images.push({ blob, metadata });
+      }
+      mounting = true;
+      await worker.FS.mkdir('/swr-plot-library');
+      let offset = 0;
+      const files = images.flatMap(({ blob, metadata }) => {
+        const entries = metadata.files.map((file: { filename: string; start: number; end: number }) => ({
+          ...file, start: file.start + offset, end: file.end + offset,
+        }));
+        offset += blob.size;
+        return entries;
+      });
+      // WebR mounts each packages entry separately; one combined image avoids
+      // attempting to mount several filesystems at the same mountpoint.
+      await worker.FS.mount('WORKERFS', { packages: [{ blob: new Blob(images.map(image => image.blob)), metadata: { files } }] }, '/swr-plot-library');
+      this.assertCurrent(generation);
+      await worker.evalRVoid('.libPaths(c("/swr-plot-library", .libPaths()))');
+      const version = await worker.evalRString('loadNamespace("ggplot2"); as.character(packageVersion("ggplot2"))');
+      this.assertCurrent(generation);
+      if (version !== '4.0.3') throw new Error('Expected bundled ggplot2 4.0.3. Restart R and retry.');
+    } catch (error) {
+      this.assertCurrent(generation);
+      if (mounting) throw new RuntimePackageError(`Could not initialize plotting packages: ${errorMessage(error)} R was restarted; your code was kept. Run again to retry.`);
+      throw error;
+    } finally { this.cancelPending.delete(cancel); }
   }
 
   private async capture(worker: WebR, notebookId: string, code: string, generation: number): Promise<Pick<RunResult, 'console' | 'images' | 'error'>> {

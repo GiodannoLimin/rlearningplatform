@@ -16,7 +16,9 @@ No application server, learner account, API key, or database service is needed.
 5. For updates, rebuild and use **Create a new deployment** in the same project.
 
 Your computer can be turned off after uploading. Only you need a hosting
-account. Keep the whole `webr` directory and all fonts/assets. Do not enable
+account. Keep the whole `webr` and `r-packages` directories and all fonts/assets.
+The ggplot2 lesson loads its bundled packages from `r-packages` when first run.
+Do not enable
 optional analytics if you want to preserve the tracking-free application.
 
 [Official upload instructions](https://developers.cloudflare.com/pages/get-started/direct-upload/)

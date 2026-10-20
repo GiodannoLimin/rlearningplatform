@@ -4,7 +4,7 @@
 
 Notebook records live in `src/content/`, independently of React components. `src/content/schema.ts` defines their TypeScript types and Zod runtime schemas. Register a notebook in `src/content/index.ts` and pass the collection through `validateCourse()`.
 
-The schema supports core notebook numbers 0–5 and practical records 6–11, displayed as P1–P6. Practical records set track to practical; original records leave track absent. Next links stay within a track. Further expansion requires a schema change; upcoming outlines are not notebook records.
+The schema supports core notebook numbers 0–5 and practical records 6–12, displayed as P1–P7. Practical records set track to practical; original records leave track absent. Next links stay within a track. Further expansion requires a schema change; upcoming outlines are not notebook records.
 
 | Record | Required content |
 | --- | --- |
@@ -97,3 +97,15 @@ Dollar signs are literal currency, not math delimiters. KaTeX renders local
 fonts and accessible MathML; arbitrary HTML and trusted LaTeX commands are
 not enabled. `pnpm test` checks every course formula. R script downloads
 retain the readable LaTeX source in comments; executable code is unchanged.
+
+
+## Optional plotting packages
+
+Declare `packages: ['ggplot2']` only on notebooks that need it. The runtime loads
+the pinned library before that notebook's first chunk, with a cancellable loading
+state. Use `ggplot2::` names explicitly: notebook environments intentionally skip
+the mutable global package search path. Keep all package content separate from
+learner edits. Every plotted example needs plotAlt and a numerical alternative;
+choose assertions on counts, coordinates, summaries, and mappings rather than
+brittle pixel snapshots. Maintain stable chunk IDs when inserting a notebook so
+saved edits remain usable. Native R must have the same ggplot2 version for tests.
